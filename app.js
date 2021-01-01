@@ -22,6 +22,7 @@ const fetchPlayerData = async () => {
         players["greenelf#1972"] = await API.MWcombatwz("greenelf#1972", "battle");
         players["ChampaignPapi_96"] = await API.MWcombatwz("ChampaignPapi_96", "psn");
         players["kangaroo_rob"] = await API.MWcombatwz("kangaroo_rob", "psn");
+        players["itsgravitymurph"] = await API.MWcombatwz("ItsGravityMurph#4770231", "acti");
     } catch(Error) {}
     return players;
 }
