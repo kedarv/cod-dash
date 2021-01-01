@@ -27,7 +27,7 @@ const fetchPlayerData = async () => {
 }
 
 const app = express()
-const port = 80
+const port = process.env.PORT || 80;
 app.use(express.static(path.join(__dirname, 'client/build')));
 app.get('/api', async (req, res) => {
     let players = null;
