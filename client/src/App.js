@@ -24,22 +24,23 @@ const modeToString = {
   'br_brtrios': 'Trios',
   'br_brquads': 'Quads',
   'br_mini_rebirth_mini_royale_quads': 'Mini Rebirth Royale Quads',
+  'br_mini_miniroyale': 'Mini Royale',
+  'br_brtriostim_name2': 'Stimulus Trios'
 }
 
 const gameTypeToString = {
   'wz': 'Warzone',
 }
 
-function convertMiliseconds(millisec) {
-  const seconds = (millisec / 1000).toFixed(1);
-  const minutes = (millisec / (1000 * 60)).toFixed(1);
+function convertSeconds(seconds) {
+  const minutes = (seconds / 60).toFixed(1);
   if (seconds < 60) {
     return seconds + " seconds";
   }
   return minutes + " minutes";
 };
 
-function utcStarToString(start) {
+function utcStartToString(start) {
   const date = new Date(start * 1000);
 
   const year = date.getFullYear();
@@ -52,6 +53,7 @@ function utcStarToString(start) {
 }
 
 function MatchStats(props) {
+  console.log(props)
   return (
     <GridItem>
       <Box
@@ -80,7 +82,7 @@ function MatchStats(props) {
             textTransform="uppercase"
 
           >
-            {utcStarToString(props.matchData[Object.keys(props.matchData)[0]].utcStartSeconds)}
+            {utcStartToString(props.match[0].matchStart)}
           </Box>
           <Heading
             size="md"
@@ -89,19 +91,19 @@ function MatchStats(props) {
             fontWeight="bold"
             fontFamily="heading"
           >
-            {modeToString[props.matchData[Object.keys(props.matchData)[0]].mode] || props.matchData[Object.keys(props.matchData)[0]].mode}
-            <Text color="gray.500" fontSize="sm">{gameTypeToString[props.matchData[Object.keys(props.matchData)[0]].gameType] || props.matchData[Object.keys(props.matchData)[0]].gameType} &bull; {convertMiliseconds(props.matchData[Object.keys(props.matchData)[0]].duration)}</Text>
+            {modeToString[props.match[0].mode] || props.match[0].mode}
+            <Text color="gray.500" fontSize="sm">{gameTypeToString[props.match[0].gameType] || props.match[0].gameType} &bull; {convertSeconds(props.match[0].timePlayed)}</Text>
           </Heading>
         </Flex>
         <Stack shouldWrapChildren spacing={5} mt={4}>
           <Accordion allowToggle>
-            {Object.entries(props.matchData).map(([key, value]) => {
+            {props.match.map(entry => {
               return (
                 <AccordionItem>
                   <AccordionButton>
                     <Box flex="1" textAlign="left">
-                      {key} ({maybePluralize(value.playerStats.kills, "kill", "s")})
-                        </Box>
+                      {entry.playerName} ({maybePluralize(entry.kills, "kill", "s")})
+                    </Box>
                     <AccordionIcon />
                   </AccordionButton>
                   <AccordionPanel pb={4}>
@@ -115,30 +117,30 @@ function MatchStats(props) {
                       <Tbody>
                         <Tr>
                           <Td>Kills</Td>
-                          <Td>{value.playerStats.kills}</Td>
+                          <Td>{entry.kills}</Td>
                         </Tr>
                         <Tr>
                           <Td>Assists</Td>
-                          <Td>{value.playerStats.assists}</Td>
+                          <Td>{entry.assists}</Td>
                         </Tr>
                         <Tr>
                           <Td>Deaths</Td>
-                          <Td>{value.playerStats.deaths}</Td>
+                          <Td>{entry.deaths}</Td>
                         </Tr>
                         <Tr>
                           <Td>Damage Done</Td>
-                          <Td>{value.playerStats.damageDone}</Td>
+                          <Td>{entry.damageDone}</Td>
                         </Tr>
                         <Tr>
                           <Td>Damage Taken</Td>
-                          <Td>{value.playerStats.damageTaken}</Td>
+                          <Td>{entry.damageTaken}</Td>
                         </Tr>
                       </Tbody>
                     </Table>
                   </AccordionPanel>
                 </AccordionItem>
               )
-            })}
+              })}
           </Accordion>
         </Stack>
       </Box>
@@ -156,20 +158,21 @@ class App extends Component {
     super(props);
     this.state = {
       matches: null,
-      players: null,
     }
   }
 
   // Fetch the list on first mount
-  componentDidMount() {
-    this.getData();
-  }
-
-  // Retrieves the list of items from the Express app
-  getData = () => {
-    fetch('/api')
-      .then(res => res.json())
-      .then(data => this.setState({ 'matches': data['matches'], 'players': data['players'] }))
+  async componentDidMount() {
+    const response = await fetch('/api');
+    const data = await response.json();
+    let matches = {}
+    data.forEach((match => {
+      if(!(match['matchId'] in matches)) {
+        matches[match['matchId']] = [];
+      }
+      matches[match['matchId']].push(match)
+    }));
+    this.setState({matches})
   }
 
   render() {
@@ -197,14 +200,7 @@ class App extends Component {
         <Grid templateColumns="repeat(auto-fit, minmax(300px, 1fr))" gap={6} p={10}>
           {this.state.matches ? (
             <>
-              {/* Render the list of items */}
-              {Object.entries(this.state.matches).map((item) => {
-                let data = {};
-                item[1].forEach((player => {
-                  data[player] = this.state.players[player].matches.filter(match => match.matchID === item[0])[0];
-                }));
-                return (<MatchStats matchData={data} />)
-              })}
+              {Object.entries(this.state.matches).map((match) => (<MatchStats match={match[1]} key={match[0]}/>))}
             </>
           ) : (<Progress size="xs" isIndeterminate />)
           }
