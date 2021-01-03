@@ -32,6 +32,8 @@ const gameTypeToString = {
   'wz': 'Warzone',
 }
 
+const PAGE_AMOUNT = 50;
+
 function convertSeconds(seconds) {
   const minutes = (seconds / 60).toFixed(1);
   if (seconds < 60) {
@@ -40,20 +42,17 @@ function convertSeconds(seconds) {
   return minutes + " minutes";
 };
 
-function utcStartToString(start) {
-  const date = new Date(start * 1000);
-
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const hours = date.getHours();
-  const minutes = date.getMinutes();
-
-  return year + "-" + month + "-" + day + " " + hours + ":" + minutes;
+function timeConverter(UNIX_timestamp){
+  const parsedDate = new Date(UNIX_timestamp * 1000);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const year = parsedDate.getFullYear();
+  const month = months[parsedDate.getMonth()];
+  const hour = parsedDate.getHours();
+  const min = parsedDate.getMinutes();
+  return month + ' ' + parsedDate.getDate() + ' ' + year + ' ' + hour + ':' + min;
 }
 
 function MatchStats(props) {
-  console.log(props)
   return (
     <GridItem>
       <Box
@@ -82,7 +81,7 @@ function MatchStats(props) {
             textTransform="uppercase"
 
           >
-            {utcStartToString(props.match[0].matchStart)}
+            {timeConverter(props.match[0].matchStart)}
           </Box>
           <Heading
             size="md"
@@ -140,7 +139,7 @@ function MatchStats(props) {
                   </AccordionPanel>
                 </AccordionItem>
               )
-              })}
+            })}
           </Accordion>
         </Stack>
       </Box>
@@ -158,21 +157,44 @@ class App extends Component {
     super(props);
     this.state = {
       matches: null,
+      pageOffset: 0,
     }
+    this.handleScroll = this.handleScroll.bind(this);
   }
 
   // Fetch the list on first mount
   async componentDidMount() {
     const response = await fetch('/api');
     const data = await response.json();
-    let matches = {}
+    let matches = [];
     data.forEach((match => {
-      if(!(match['matchId'] in matches)) {
-        matches[match['matchId']] = [];
+      let appended = false;
+      for (let i = 0; i < matches.length; i++) {
+        if (matches[i][0].matchId === match['matchId']) {
+          matches[i].push(match);
+          appended = true;
+          break;
+        }
       }
-      matches[match['matchId']].push(match)
+      if (!appended) {
+        matches.push([match]);
+      }
     }));
-    this.setState({matches})
+    this.setState({ matches })
+    window.addEventListener("scroll", this.handleScroll);
+  }
+
+  handleScroll() {
+    const windowHeight = "innerHeight" in window ? window.innerHeight : document.documentElement.offsetHeight;
+    const body = document.body;
+    const html = document.documentElement;
+    const docHeight = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
+    const windowBottom = windowHeight + window.pageYOffset;
+    if (windowBottom >= docHeight) {
+      this.setState({
+        pageOffset: this.state.pageOffset + PAGE_AMOUNT
+      })
+    }
   }
 
   render() {
@@ -200,7 +222,7 @@ class App extends Component {
         <Grid templateColumns="repeat(auto-fit, minmax(300px, 1fr))" gap={6} p={10}>
           {this.state.matches ? (
             <>
-              {Object.entries(this.state.matches).map((match) => (<MatchStats match={match[1]} key={match[0]}/>))}
+              {this.state.matches.slice(0, this.state.pageOffset + PAGE_AMOUNT).map((match => (<MatchStats match={match} key={match[0].matchId} />)))}
             </>
           ) : (<Progress size="xs" isIndeterminate />)
           }
