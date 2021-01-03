@@ -161,6 +161,9 @@ app.get('/api', async (req, res) => {
     const updatedTrack = await UpdateTrack.findOne({
         order: [['createdAt', 'DESC']],
     });
+    if(updatedTrack === null) {
+        UpdateTrack.create({});
+    }
     res.json({
         'results': results,
         'updatedAgo': moment(updatedTrack.updatedAt).fromNow()
