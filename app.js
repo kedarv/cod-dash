@@ -157,7 +157,7 @@ app.get('/refresh', async (req, res) => {
 
 
 app.get('/api', async (req, res) => {
-    const [results,] = await sequelize.query("SELECT * FROM \"Matches\" WHERE \"matchId\" IN (SELECT * FROM (SELECT \"matchId\" FROM \"Matches\" GROUP BY \"matchId\" HAVING COUNT(\"matchId\") > 1) AS a);");
+    const [results,] = await sequelize.query("SELECT * FROM \"Matches\" WHERE \"matchId\" IN (SELECT * FROM (SELECT \"matchId\" FROM \"Matches\" GROUP BY \"matchId\" HAVING COUNT(\"matchId\") > 1) AS a) ORDER BY \"matchStart\" DESC;");
     const updatedTrack = await UpdateTrack.findOne({
         order: [['createdAt', 'DESC']],
     });
