@@ -6,9 +6,10 @@ import {
   Flex,
   Progress,
   Heading,
+  createStandaloneToast,
 } from '@chakra-ui/react'
 import MatchStats from './components/MatchStats';
-import DataUpdater from './components/DataUpdater'; 
+import DataUpdater from './components/DataUpdater';
 
 const PAGE_AMOUNT = 50;
 class App extends Component {
@@ -22,7 +23,41 @@ class App extends Component {
     this.handleScroll = this.handleScroll.bind(this);
   }
 
-  async componentDidMount() {
+  handleDataRefresh = async () => {
+    const toast = createStandaloneToast()
+    toast({
+      position: "bottom-left",
+      title: "Refreshing Data",
+      description: "We've issued a data refresh.",
+      status: "info",
+      duration: 6000,
+      isClosable: true,
+    })
+    const response = await fetch('/refresh');
+    const data = await response.json();
+    if (data['message'] === "SUCCESS") {
+      await this.populateMatches();
+      toast({
+        position: "bottom-left",
+        title: "Refresh Complete",
+        description: "We've pulled in new data.",
+        status: "success",
+        duration: 6000,
+        isClosable: true,
+      })
+    } else {
+      toast({
+        position: "bottom-left",
+        title: "Refresh Refused",
+        description: "It looks like we've already refreshed data recently. Try again later.",
+        status: "warning",
+        duration: 6000,
+        isClosable: true,
+      })
+    }
+  }
+
+  populateMatches = async () => {
     const response = await fetch('/api');
     const data = await response.json();
     let matches = [];
@@ -41,8 +76,15 @@ class App extends Component {
         matches.push([match]);
       }
     }));
-
     this.setState({ matches, updatedAgo: data['updatedAgo'] });
+
+    if (data['triggerRefresh']) {
+      this.handleDataRefresh();
+    }
+  }
+
+  async componentDidMount() {
+    await this.populateMatches();
     window.addEventListener("scroll", this.handleScroll);
   }
 
@@ -81,7 +123,7 @@ class App extends Component {
             <Heading>⚡️Dub Squad Dashboard</Heading>
           </Flex>
           <Text color="gray.500">let's get dem dubs</Text>
-          <Text color="gray.500">{this.state.updatedAgo && <DataUpdater text={this.state.updatedAgo}/>}</Text>
+          <Text color="gray.500">{this.state.updatedAgo && <DataUpdater text={this.state.updatedAgo} refreshFn={this.handleDataRefresh} />}</Text>
         </Flex>
         <Grid templateColumns="repeat(auto-fit, minmax(300px, 1fr))" gap={6} p={10}>
           {this.state.matches ? (

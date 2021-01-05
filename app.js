@@ -81,7 +81,7 @@ const app = express()
 const port = process.env.PORT || 80;
 app.use(express.static(path.join(__dirname, 'client/build')));
 
-app.get('/refresh', async (req, res) => {
+let refreshData = async () => {
     const updateTracker = await UpdateTrack.findOne({
         order: [['createdAt', 'DESC']],
     });
@@ -149,10 +149,14 @@ app.get('/refresh', async (req, res) => {
                 console.log(e)
             }
         };
-        res.json({ "message": "SUCCESS" });
+        return "SUCCESS";
     } else {
-        res.json({ "message": "UPDATE_REFUSED" });
+        return "UPDATE_REFUSED";
     }
+}
+app.get('/refresh', async (req, res) => {
+    const resp = await refreshData();
+    res.json({ "message": resp });
 });
 
 
@@ -161,11 +165,12 @@ app.get('/api', async (req, res) => {
     const updatedTrack = await UpdateTrack.findOne({
         order: [['createdAt', 'DESC']],
     });
-    if(updatedTrack === null) {
+    if (updatedTrack === null) {
         UpdateTrack.create({});
     }
     res.json({
         'results': results,
+        'triggerRefresh': Math.floor((Date.now() - updatedTrack.updatedAt) / 1000) > SECONDS_UPDATE_DELAY,
         'updatedAgo': moment(updatedTrack.updatedAt).fromNow()
     });
 })
