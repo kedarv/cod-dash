@@ -80,7 +80,6 @@ const SECONDS_UPDATE_DELAY = 900;
 const app = express()
 const port = process.env.PORT || 80;
 app.use(cors())
-app.use(express.static(path.join(__dirname, 'client/build')));
 
 let refreshData = async () => {
     const updateTracker = await UpdateTrack.findOne({
@@ -176,9 +175,9 @@ app.get('/api', cors(), async (req, res) => {
     });
 })
 
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname + '/client/build/index.html'));
-});
+app.get('/', (req, res) => {
+    res.send('cod-dash api is ok')
+})
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)
