@@ -4,7 +4,7 @@ const express = require('express')
 const path = require('path');
 const API = require('call-of-duty-api')();
 const { Sequelize, DataTypes } = require('sequelize');
-const moment = require('moment');
+const cors = require('cors');
 
 sequelize = new Sequelize(process.env.POSTGRES_DB_URL, {
     dialect: 'postgres',
@@ -79,6 +79,7 @@ const SECONDS_UPDATE_DELAY = 900;
 
 const app = express()
 const port = process.env.PORT || 80;
+app.use(cors())
 app.use(express.static(path.join(__dirname, 'client/build')));
 
 let refreshData = async () => {
@@ -154,13 +155,13 @@ let refreshData = async () => {
         return "UPDATE_REFUSED";
     }
 }
-app.get('/refresh', async (req, res) => {
+app.get('/refresh', cors(), async (req, res) => {
     const resp = await refreshData();
     res.json({ "message": resp });
 });
 
 
-app.get('/api', async (req, res) => {
+app.get('/api', cors(), async (req, res) => {
     const [results,] = await sequelize.query("SELECT * FROM \"Matches\" WHERE \"matchId\" IN (SELECT * FROM (SELECT \"matchId\" FROM \"Matches\" GROUP BY \"matchId\" HAVING COUNT(\"matchId\") > 1) AS a) ORDER BY \"matchStart\" DESC;");
     const updatedTrack = await UpdateTrack.findOne({
         order: [['createdAt', 'DESC']],
@@ -171,7 +172,7 @@ app.get('/api', async (req, res) => {
     res.json({
         'results': results,
         'triggerRefresh': Math.floor((Date.now() - updatedTrack.updatedAt) / 1000) > SECONDS_UPDATE_DELAY,
-        'updatedAgo': moment(updatedTrack.updatedAt).fromNow()
+        'updatedAgo': updatedTrack.updatedAt,
     });
 })
 

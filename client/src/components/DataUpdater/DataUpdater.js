@@ -1,16 +1,13 @@
 import React, { useCallback } from 'react';
-import {
-    Text,
-    useToast,
-    Link,
-} from '@chakra-ui/react'
+import { Text, Link} from '@chakra-ui/react'
+import TimeAgo from 'timeago-react';
 
 const DataUpdater = props => {
     const handleClick = useCallback(async () => {
         props.refreshFn();
     });
     return (<>
-        updated {props.text}{' '}
+        updated <TimeAgo datetime={props.time}/>{' '}
         <Text as="sup">
             <Text as="b">
                 <Link onClick={handleClick}>

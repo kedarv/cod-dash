@@ -7,7 +7,7 @@ import {
   Progress,
   Heading,
   createStandaloneToast,
-} from '@chakra-ui/react'
+} from '@chakra-ui/react';
 import MatchStats from './components/MatchStats';
 import DataUpdater from './components/DataUpdater';
 
@@ -33,7 +33,7 @@ class App extends Component {
       duration: 6000,
       isClosable: true,
     })
-    const response = await fetch('/refresh');
+    const response = await fetch(process.env.REACT_APP_HOST + '/refresh');
     const data = await response.json();
     if (data['message'] === "SUCCESS") {
       await this.populateMatches();
@@ -58,7 +58,7 @@ class App extends Component {
   }
 
   populateMatches = async () => {
-    const response = await fetch('/api');
+    const response = await fetch(process.env.REACT_APP_HOST + '/api');
     const data = await response.json();
     let matches = [];
 
@@ -123,7 +123,7 @@ class App extends Component {
             <Heading>⚡️Dub Squad Dashboard</Heading>
           </Flex>
           <Text color="gray.500">let's get dem dubs</Text>
-          <Text color="gray.500">{this.state.updatedAgo && <DataUpdater text={this.state.updatedAgo} refreshFn={this.handleDataRefresh} />}</Text>
+          <Text color="gray.500">{this.state.updatedAgo && <DataUpdater time={this.state.updatedAgo} refreshFn={this.handleDataRefresh} />}</Text>
         </Flex>
         <Grid templateColumns="repeat(auto-fit, minmax(300px, 1fr))" gap={6} p={10}>
           {this.state.matches ? (
