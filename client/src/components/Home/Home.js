@@ -7,18 +7,28 @@ import {
   Progress,
   Heading,
   createStandaloneToast,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
 } from '@chakra-ui/react';
-import MatchStats from './components/MatchStats';
-import DataUpdater from './components/DataUpdater';
+import MatchStats from '../MatchStats';
+import DataUpdater from '../DataUpdater';
+import GameDetail from '../GameDetail';
 
 const PAGE_AMOUNT = 50;
-class App extends Component {
+class Home extends Component {
   constructor(props) {
     super(props);
     this.state = {
       matches: null,
       pageOffset: 0,
       updatedAt: null,
+      viewingGameDetail: props.match?.params?.id,
+      modalOpen: props.match?.params?.id !== undefined,
     }
     this.handleScroll = this.handleScroll.bind(this);
   }
@@ -106,6 +116,19 @@ class App extends Component {
     return (
       <div className="App">
         <CSSReset />
+        {this.state.viewingGameDetail && (
+        <>
+        <Modal closeOnOverlayClick={true} isOpen={this.state.modalOpen} onClose={()=>{this.setState({"modalOpen": false})}}>
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Game Detail</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody pb={6}>
+                      <GameDetail matchId={this.props.match.params.id}/>
+                    </ModalBody>
+                </ModalContent>
+            </Modal>
+        </>)}
         <Flex
           display="flex"
           flexDirection="column"
@@ -128,7 +151,7 @@ class App extends Component {
         <Grid templateColumns="repeat(auto-fit, minmax(300px, 1fr))" gap={6} p={10}>
           {this.state.matches ? (
             <>
-              {this.state.matches.slice(0, this.state.pageOffset + PAGE_AMOUNT).map((match => (<MatchStats match={match} key={match[0].matchId} />)))}
+              {this.state.matches.slice(0, this.state.pageOffset + PAGE_AMOUNT).map((match => (<MatchStats match={match} key={match[0].matchId} linkable/>)))}
             </>
           ) : (<Progress size="xs" isIndeterminate />)
           }
@@ -138,4 +161,4 @@ class App extends Component {
   }
 }
 
-export default App;
+export default Home;

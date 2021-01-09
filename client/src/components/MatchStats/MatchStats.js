@@ -17,7 +17,10 @@ import {
     Tr,
     Th,
     Td,
-} from '@chakra-ui/react'
+    createStandaloneToast,
+} from '@chakra-ui/react';
+import { ExternalLinkIcon } from '@chakra-ui/icons'
+import { Link } from 'react-router-dom';
 
 const maybePluralize = (count, noun, suffix = 's') =>
     `${count} ${noun}${count !== 1 ? suffix : ''}`;
@@ -26,7 +29,9 @@ const modeToString = {
     'br_brduos': 'Duos',
     'br_brtrios': 'Trios',
     'br_brquads': 'Quads',
-    'br_mini_rebirth_mini_royale_quads': 'Mini Rebirth Royale Quads',
+    'br_mini_rebirth_mini_royale_quads': 'Rebirth Mini Royale Quads',
+    'br_rebirth_rbrthtrios': 'Rebirth Mini Royale Trios',
+    'br_mini_rebirth_mini_royale_duos': 'Rebirth Mini Royale Duos',
     'br_mini_miniroyale': 'Mini Royale',
     'br_brtriostim_name2': 'Stimulus Trios'
 }
@@ -51,6 +56,26 @@ function timeConverter(UNIX_timestamp) {
     const hour = parsedDate.getHours();
     const min = parsedDate.getMinutes();
     return month + ' ' + parsedDate.getDate() + ' ' + year + ' ' + hour + ':' + min;
+}
+
+function copyToClipboard(content) {
+    const toast = createStandaloneToast();
+    const url = window.location.href.split("#/")[0] + "#" + content;
+    const el = document.createElement('textarea');
+    el.value = url;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+
+    toast({
+        position: "bottom-left",
+        title: "Game Detail Link Copied",
+        description: "Copied " + url + " to clipboard.",
+        status: "success",
+        duration: 6000,
+        isClosable: true,
+    })
 }
 
 const MatchStats = props => (
@@ -79,9 +104,15 @@ const MatchStats = props => (
                     letterSpacing="wide"
                     fontSize="xs"
                     textTransform="uppercase"
-
                 >
-                    {timeConverter(props.match[0].matchStart)}
+                    <Link
+                        to={"/game/" + props.match[0].matchId}
+                        style={{ "display": "flex", "alignItems": "center" }}
+                        onClick={() => { copyToClipboard("/game/" + props.match[0].matchId) }}
+                    >
+                        {props.linkable && (<ExternalLinkIcon />)}
+                        {timeConverter(props.match[0].matchStart)}
+                    </Link>
                 </Box>
                 <Heading
                     size="md"
@@ -95,14 +126,14 @@ const MatchStats = props => (
                 </Heading>
             </Flex>
             <Stack shouldWrapChildren spacing={5} mt={4}>
-                <Accordion allowToggle>
+                <Accordion allowToggle defaultIndex={props.expandAll ? [...Array(props.match.length).keys()] : []}>
                     {props.match.map(entry => {
                         return (
                             <AccordionItem>
                                 <AccordionButton>
                                     <Box flex="1" textAlign="left">
                                         {entry.playerName} ({maybePluralize(entry.kills, "kill", "s")})
-                    </Box>
+                                    </Box>
                                     <AccordionIcon />
                                 </AccordionButton>
                                 <AccordionPanel pb={4}>

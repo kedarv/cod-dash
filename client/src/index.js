@@ -1,13 +1,16 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './App';
+import Main from './Main';
 import { ChakraProvider } from "@chakra-ui/react"
+import { HashRouter } from "react-router-dom";
 
 ReactDOM.render(
   <React.StrictMode>
-    <ChakraProvider>
-      <App />
-    </ChakraProvider>
+    <HashRouter>
+      <ChakraProvider>
+        <Main />
+      </ChakraProvider>
+    </HashRouter>
   </React.StrictMode>,
   document.getElementById('root')
 );

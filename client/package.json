@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@chakra-ui/icons": "^1.0.2",
     "@chakra-ui/react": "^1.1.0",
     "@emotion/react": "^11.1.4",
     "@emotion/styled": "^11.0.0",
@@ -11,8 +12,8 @@
     "@testing-library/user-event": "^12.6.0",
     "dynamic-virtual-scroll": "^1.0.15",
     "framer-motion": "^3.1.1",
-    "react": "^17.0.1",
     "react-dom": "^17.0.1",
+    "react-router-dom": "^5.2.0",
     "react-scripts": "4.0.1",
     "timeago-react": "^3.0.1",
     "web-vitals": "^0.2.4"

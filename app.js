@@ -175,6 +175,15 @@ app.get('/api', cors(), async (req, res) => {
     });
 })
 
+app.get('/api/match/:id', async (req, res) => {
+    const matchData = await Match.findAll({
+        where: {
+          matchId: req.params.id
+        }
+      });
+    res.json(matchData)
+});
+
 app.get('/', (req, res) => {
     res.send('cod-dash api is ok')
 })
