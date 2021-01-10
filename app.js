@@ -58,6 +58,18 @@ const Match = sequelize.define('Match', {
         type: DataTypes.INTEGER,
         allowNull: false
     },
+    damageDone: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    damageTaken: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    teamPlacement: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
     matchStart: {
         type: DataTypes.INTEGER,
         allowNull: false
@@ -135,6 +147,9 @@ let refreshData = async () => {
                                         assists: filteredMatchData[0].playerStats.assists || 0,
                                         gulagKills: filteredMatchData[0].playerStats.gulagKills || 0,
                                         timePlayed: filteredMatchData[0].playerStats.timePlayed || 0,
+                                        damageDone: filteredMatchData[0].playerStats.damageDone || 0,
+                                        damageTaken: filteredMatchData[0].playerStats.damageTaken || 0,
+                                        teamPlacement: filteredMatchData[0].playerStats.teamPlacement || 0,
                                         matchStart: filteredMatchData[0].utcStartSeconds,
                                         matchEnd: filteredMatchData[0].utcEndSeconds,
                                     });
@@ -178,9 +193,9 @@ app.get('/api', cors(), async (req, res) => {
 app.get('/api/match/:id', async (req, res) => {
     const matchData = await Match.findAll({
         where: {
-          matchId: req.params.id
+            matchId: req.params.id
         }
-      });
+    });
     res.json(matchData)
 });
 

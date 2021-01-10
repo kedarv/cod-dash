@@ -19,7 +19,7 @@ import {
     Td,
     createStandaloneToast,
 } from '@chakra-ui/react';
-import { ExternalLinkIcon } from '@chakra-ui/icons'
+import { CopyIcon } from '@chakra-ui/icons'
 import { Link } from 'react-router-dom';
 
 const maybePluralize = (count, noun, suffix = 's') =>
@@ -34,10 +34,6 @@ const modeToString = {
     'br_mini_rebirth_mini_royale_duos': 'Rebirth Mini Royale Duos',
     'br_mini_miniroyale': 'Mini Royale',
     'br_brtriostim_name2': 'Stimulus Trios'
-}
-
-const gameTypeToString = {
-    'wz': 'Warzone',
 }
 
 function convertSeconds(seconds) {
@@ -56,6 +52,12 @@ function timeConverter(UNIX_timestamp) {
     const hour = parsedDate.getHours();
     const min = parsedDate.getMinutes();
     return month + ' ' + parsedDate.getDate() + ' ' + year + ' ' + hour + ':' + min;
+}
+
+function getNumberWithOrdinal(n) {
+    var s = ["th", "st", "nd", "rd"],
+        v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
 function copyToClipboard(content) {
@@ -84,7 +86,7 @@ const MatchStats = props => (
             backgroundColor="white"
             borderRadius="lg"
             shadow="sm"
-            border="1px solid lightgrey"
+            border={props.match[0].teamPlacement === 1 ? "1px solid green" : "1px solid lightgrey"}
             pl={3}
             pr={3}
             pt={5}
@@ -110,7 +112,7 @@ const MatchStats = props => (
                         style={{ "display": "flex", "alignItems": "center" }}
                         onClick={() => { copyToClipboard("/game/" + props.match[0].matchId) }}
                     >
-                        {props.linkable && (<ExternalLinkIcon />)}
+                        {props.linkable && (<><CopyIcon />&nbsp;</>)}
                         {timeConverter(props.match[0].matchStart)}
                     </Link>
                 </Box>
@@ -122,7 +124,7 @@ const MatchStats = props => (
                     fontFamily="heading"
                 >
                     {modeToString[props.match[0].mode] || props.match[0].mode}
-                    <Text color="gray.500" fontSize="sm">{gameTypeToString[props.match[0].gameType] || props.match[0].gameType} &bull; {convertSeconds(props.match[0].timePlayed)}</Text>
+                    <Text color="gray.500" fontSize="sm">{getNumberWithOrdinal(props.match[0].teamPlacement)} place &bull; {convertSeconds(props.match[0].timePlayed)}</Text>
                 </Heading>
             </Flex>
             <Stack shouldWrapChildren spacing={5} mt={4}>
@@ -164,6 +166,10 @@ const MatchStats = props => (
                                             <Tr>
                                                 <Td>Damage Taken</Td>
                                                 <Td>{entry.damageTaken}</Td>
+                                            </Tr>
+                                            <Tr>
+                                                <Td>Gulag Kills</Td>
+                                                <Td>{entry.gulagKills}</Td>
                                             </Tr>
                                         </Tbody>
                                     </Table>
