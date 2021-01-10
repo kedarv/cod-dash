@@ -86,7 +86,7 @@ const MatchStats = props => (
             backgroundColor="white"
             borderRadius="lg"
             shadow="sm"
-            border={props.match[0].teamPlacement === 1 ? "1px solid green" : "1px solid lightgrey"}
+            border={props.match[0].teamPlacement === 1 ? "1px solid goldenrod" : "1px solid lightgrey"}
             pl={3}
             pr={3}
             pt={5}
