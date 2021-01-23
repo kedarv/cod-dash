@@ -33,7 +33,8 @@ const modeToString = {
     'br_rebirth_rbrthtrios': 'Rebirth Mini Royale Trios',
     'br_mini_rebirth_mini_royale_duos': 'Rebirth Mini Royale Duos',
     'br_mini_miniroyale': 'Mini Royale',
-    'br_brtriostim_name2': 'Stimulus Trios'
+    'br_brtriostim_name2': 'Stimulus Trios',
+    'br_rebirth_rbrthquad': 'Rebirth Resurgence Quads'
 }
 
 function convertSeconds(seconds) {
