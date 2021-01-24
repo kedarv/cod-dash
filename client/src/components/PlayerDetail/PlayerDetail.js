@@ -82,7 +82,7 @@ class PlayerDetail extends Component {
                                     alignItems="flex-start"
                                     justifyContent="flex-start"
                                 >
-                                    <Heading size="sm">Average Kills by Week</Heading>
+                                    <Heading size="sm">Average Kills per Game by Week</Heading>
                                 </Flex>
                             </Flex>
 
