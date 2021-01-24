@@ -199,6 +199,19 @@ app.get('/api/match/:id', async (req, res) => {
     res.json(matchData)
 });
 
+app.get('/api/player/:name', async (req, res) => {
+    const [kills_by_week,] = await sequelize.query(`
+        SELECT (CAST(date_trunc('week', CAST((CAST(to_timestamp("public"."Matches"."matchStart") AS timestamp) + (INTERVAL '1 day')) AS timestamp)) AS timestamp) + (INTERVAL '-1 day')) AS "time", avg("public"."Matches"."kills") AS "value"
+        FROM "public"."Matches"
+        WHERE "public"."Matches"."playerName" = '${req.params.name}'
+        GROUP BY (CAST(date_trunc('week', CAST((CAST(to_timestamp("public"."Matches"."matchStart") AS timestamp) + (INTERVAL '1 day')) AS timestamp)) AS timestamp) + (INTERVAL '-1 day'))
+        ORDER BY (CAST(date_trunc('week', CAST((CAST(to_timestamp("public"."Matches"."matchStart") AS timestamp) + (INTERVAL '1 day')) AS timestamp)) AS timestamp) + (INTERVAL '-1 day')) ASC
+    `);
+    res.json({
+        'kills_by_week': kills_by_week
+    })
+});
+
 app.get('/', (req, res) => {
     res.send('cod-dash api is ok')
 })
