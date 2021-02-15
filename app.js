@@ -86,8 +86,9 @@ const PLAYERS = [
     { "username": "ChampaignPapi_96", "platform": "psn", "display": "bballlova99" },
     { "username": "kangaroo_rob", "platform": "psn", "display": "kangaroo" },
     { "username": "ItsGravityMurph#4770231", "platform": "acti", "display": "ItsGravityMurph" },
+    { "username": "Dbajj#1645", "platform": "battle", "display": "Dbajj"},
 ]
-const SECONDS_UPDATE_DELAY = 900;
+const SECONDS_UPDATE_DELAY = 60;
 
 const app = express()
 const port = process.env.PORT || 80;
@@ -187,6 +188,7 @@ app.get('/api', cors(), async (req, res) => {
         'results': results,
         'triggerRefresh': Math.floor((Date.now() - updatedTrack.updatedAt) / 1000) > SECONDS_UPDATE_DELAY,
         'updatedAgo': updatedTrack.updatedAt,
+        'players': PLAYERS,
     });
 })
 

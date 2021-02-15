@@ -21,6 +21,7 @@ import {
 } from '@chakra-ui/react';
 import { CopyIcon } from '@chakra-ui/icons'
 import { Link } from 'react-router-dom';
+import { fromUnixTime, format, formatDistance } from 'date-fns';
 
 const maybePluralize = (count, noun, suffix = 's') =>
     `${count} ${noun}${count !== 1 ? suffix : ''}`;
@@ -35,24 +36,6 @@ const modeToString = {
     'br_mini_miniroyale': 'Mini Royale',
     'br_brtriostim_name2': 'Stimulus Trios',
     'br_rebirth_rbrthquad': 'Rebirth Resurgence Quads'
-}
-
-function convertSeconds(seconds) {
-    const minutes = (seconds / 60).toFixed(1);
-    if (seconds < 60) {
-        return seconds + " seconds";
-    }
-    return minutes + " minutes";
-};
-
-function timeConverter(UNIX_timestamp) {
-    const parsedDate = new Date(UNIX_timestamp * 1000);
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const year = parsedDate.getFullYear();
-    const month = months[parsedDate.getMonth()];
-    const hour = parsedDate.getHours();
-    const min = parsedDate.getMinutes();
-    return month + ' ' + parsedDate.getDate() + ' ' + year + ' ' + hour + ':' + min;
 }
 
 function getNumberWithOrdinal(n) {
@@ -81,107 +64,110 @@ function copyToClipboard(content) {
     })
 }
 
-const MatchStats = props => (
-    <GridItem>
-        <Box
-            backgroundColor="white"
-            borderRadius="lg"
-            shadow="sm"
-            border={props.match[0].teamPlacement === 1 ? "1px solid goldenrod" : "1px solid lightgrey"}
-            pl={3}
-            pr={3}
-            pt={5}
-            pb={5}
-        >
-            <Flex
-                display="flex"
-                flexDirection="column"
-                alignItems="flex-start"
-                justifyContent="flex-start"
-                mb={2}
-                pl={4}
+const MatchStats = props => {
+    const sortedEntries = props.match.sort((player1, player2) => player2.kills - player1.kills);
+    return (
+        <GridItem>
+            <Box
+                backgroundColor="white"
+                borderRadius="lg"
+                shadow="sm"
+                border={props.match[0].teamPlacement === 1 ? "1px solid goldenrod" : "1px solid lightgrey"}
+                pl={3}
+                pr={3}
+                pt={5}
+                pb={5}
             >
-                <Box
-                    color="gray.500"
-                    fontWeight="semibold"
-                    letterSpacing="wide"
-                    fontSize="xs"
-                    textTransform="uppercase"
+                <Flex
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="flex-start"
+                    justifyContent="flex-start"
+                    mb={2}
+                    pl={4}
                 >
-                    <Link
-                        to={"/game/" + props.match[0].matchId}
-                        style={{ "display": "flex", "alignItems": "center" }}
-                        onClick={() => { copyToClipboard("/game/" + props.match[0].matchId) }}
+                    <Box
+                        color="gray.500"
+                        fontWeight="semibold"
+                        letterSpacing="wide"
+                        fontSize="xs"
+                        textTransform="uppercase"
                     >
-                        {props.linkable && (<><CopyIcon />&nbsp;</>)}
-                        {timeConverter(props.match[0].matchStart)}
-                    </Link>
-                </Box>
-                <Heading
-                    size="md"
-                    as="h2"
-                    lineHeight="shorter"
-                    fontWeight="bold"
-                    fontFamily="heading"
-                >
-                    {modeToString[props.match[0].mode] || props.match[0].mode}
-                    <Text color="gray.500" fontSize="sm">{getNumberWithOrdinal(props.match[0].teamPlacement)} place &bull; {convertSeconds(props.match[0].timePlayed)}</Text>
-                </Heading>
-            </Flex>
-            <Stack shouldWrapChildren spacing={5} mt={4}>
-                <Accordion allowToggle defaultIndex={props.expandAll ? [...Array(props.match.length).keys()] : []}>
-                    {props.match.map(entry => {
-                        return (
-                            <AccordionItem>
-                                <AccordionButton>
-                                    <Box flex="1" textAlign="left">
-                                        {entry.playerName} ({maybePluralize(entry.kills, "kill", "s")})
+                        <Link
+                            to={"/game/" + props.match[0].matchId}
+                            style={{ "display": "flex", "alignItems": "center" }}
+                            onClick={() => { copyToClipboard("/game/" + props.match[0].matchId) }}
+                        >
+                            {props.linkable && (<><CopyIcon />&nbsp;</>)}
+                            {format(fromUnixTime(props.match[0].matchStart), "MMM d yyyy h:mm aa")}
+                        </Link>
+                    </Box>
+                    <Heading
+                        size="md"
+                        as="h2"
+                        lineHeight="shorter"
+                        fontWeight="bold"
+                        fontFamily="heading"
+                    >
+                        {modeToString[props.match[0].mode] || props.match[0].mode}
+                        <Text color="gray.500" fontSize="sm">{getNumberWithOrdinal(props.match[0].teamPlacement)} place &bull; {formatDistance(0, props.match[0].timePlayed * 1000, { includeSeconds: true })}</Text>
+                    </Heading>
+                </Flex>
+                <Stack shouldWrapChildren spacing={5} mt={4}>
+                    <Accordion allowToggle defaultIndex={props.expandAll ? [...Array(props.match.length).keys()] : []}>
+                        {sortedEntries.map(entry => {
+                            return (
+                                <AccordionItem>
+                                    <AccordionButton>
+                                        <Box flex="1" textAlign="left">
+                                            {entry.playerName} ({maybePluralize(entry.kills, "kill", "s")})
                                     </Box>
-                                    <AccordionIcon />
-                                </AccordionButton>
-                                <AccordionPanel pb={4}>
-                                    <Table variant="simple" size="sm">
-                                        <Thead>
-                                            <Tr>
-                                                <Th>Stat</Th>
-                                                <Th>Entry</Th>
-                                            </Tr>
-                                        </Thead>
-                                        <Tbody>
-                                            <Tr>
-                                                <Td>Kills</Td>
-                                                <Td>{entry.kills}</Td>
-                                            </Tr>
-                                            <Tr>
-                                                <Td>Assists</Td>
-                                                <Td>{entry.assists}</Td>
-                                            </Tr>
-                                            <Tr>
-                                                <Td>Deaths</Td>
-                                                <Td>{entry.deaths}</Td>
-                                            </Tr>
-                                            <Tr>
-                                                <Td>Damage Done</Td>
-                                                <Td>{entry.damageDone}</Td>
-                                            </Tr>
-                                            <Tr>
-                                                <Td>Damage Taken</Td>
-                                                <Td>{entry.damageTaken}</Td>
-                                            </Tr>
-                                            <Tr>
-                                                <Td>Gulag Kills</Td>
-                                                <Td>{entry.gulagKills}</Td>
-                                            </Tr>
-                                        </Tbody>
-                                    </Table>
-                                </AccordionPanel>
-                            </AccordionItem>
-                        )
-                    })}
-                </Accordion>
-            </Stack>
-        </Box>
-    </GridItem>
-);
+                                        <AccordionIcon />
+                                    </AccordionButton>
+                                    <AccordionPanel pb={4}>
+                                        <Table variant="simple" size="sm">
+                                            <Thead>
+                                                <Tr>
+                                                    <Th>Stat</Th>
+                                                    <Th>Entry</Th>
+                                                </Tr>
+                                            </Thead>
+                                            <Tbody>
+                                                <Tr>
+                                                    <Td>Kills</Td>
+                                                    <Td>{entry.kills}</Td>
+                                                </Tr>
+                                                <Tr>
+                                                    <Td>Assists</Td>
+                                                    <Td>{entry.assists}</Td>
+                                                </Tr>
+                                                <Tr>
+                                                    <Td>Deaths</Td>
+                                                    <Td>{entry.deaths}</Td>
+                                                </Tr>
+                                                <Tr>
+                                                    <Td>Damage Done</Td>
+                                                    <Td>{entry.damageDone}</Td>
+                                                </Tr>
+                                                <Tr>
+                                                    <Td>Damage Taken</Td>
+                                                    <Td>{entry.damageTaken}</Td>
+                                                </Tr>
+                                                <Tr>
+                                                    <Td>Gulag Kills</Td>
+                                                    <Td>{entry.gulagKills}</Td>
+                                                </Tr>
+                                            </Tbody>
+                                        </Table>
+                                    </AccordionPanel>
+                                </AccordionItem>
+                            )
+                        })}
+                    </Accordion>
+                </Stack>
+            </Box>
+        </GridItem>
+    )
+};
 
 export default MatchStats;

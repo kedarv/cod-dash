@@ -11,9 +11,13 @@ import {
   ModalOverlay,
   ModalContent,
   ModalHeader,
-  ModalFooter,
   ModalBody,
   ModalCloseButton,
+  GridItem,
+  Box,
+  Container,
+  Center,
+  Divider,
 } from '@chakra-ui/react';
 import MatchStats from '../MatchStats';
 import DataUpdater from '../DataUpdater';
@@ -29,6 +33,7 @@ class Home extends Component {
       updatedAt: null,
       viewingGameDetail: props.match?.params?.id,
       modalOpen: props.match?.params?.id !== undefined,
+      players: null,
     }
     this.handleScroll = this.handleScroll.bind(this);
   }
@@ -86,7 +91,7 @@ class Home extends Component {
         matches.push([match]);
       }
     }));
-    this.setState({ matches, updatedAgo: data['updatedAgo'] });
+    this.setState({ matches, updatedAgo: data['updatedAgo'], players: data['players'] });
 
     if (data['triggerRefresh']) {
       this.handleDataRefresh();
@@ -117,18 +122,18 @@ class Home extends Component {
       <div className="App">
         <CSSReset />
         {this.state.viewingGameDetail && (
-        <>
-        <Modal closeOnOverlayClick={true} isOpen={this.state.modalOpen} onClose={()=>{this.setState({"modalOpen": false})}}>
-                <ModalOverlay />
-                <ModalContent>
-                    <ModalHeader>Game Detail</ModalHeader>
-                    <ModalCloseButton />
-                    <ModalBody pb={6}>
-                      <GameDetail matchId={this.props.match.params.id}/>
-                    </ModalBody>
-                </ModalContent>
+          <>
+            <Modal closeOnOverlayClick={true} isOpen={this.state.modalOpen} onClose={() => { this.setState({ "modalOpen": false }) }}>
+              <ModalOverlay />
+              <ModalContent>
+                <ModalHeader>Game Detail</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody pb={6}>
+                  <GameDetail matchId={this.props.match.params.id} />
+                </ModalBody>
+              </ModalContent>
             </Modal>
-        </>)}
+          </>)}
         <Flex
           display="flex"
           flexDirection="column"
@@ -148,13 +153,40 @@ class Home extends Component {
           <Text color="gray.500">let's get dem dubs</Text>
           <Text color="gray.500">{this.state.updatedAgo && <DataUpdater time={this.state.updatedAgo} refreshFn={this.handleDataRefresh} />}</Text>
         </Flex>
+        {!this.state.players && (
+          <Container mt={8}>
+            <Progress size="xs" isIndeterminate />
+          </Container>
+        )}
+        <Container maxW="7xl">
+          <Grid templateColumns="repeat(auto-fit, minmax(200px, 1fr))" gap={6} p={10}>
+            {this.state.players && (
+              this.state.players.map((player =>
+                <GridItem>
+                  <Box
+                    backgroundColor="white"
+                    borderRadius="lg"
+                    shadow="md"
+                    border={"1px solid lightgrey"}
+                    pl={3}
+                    pr={3}
+                    pt={5}
+                    pb={5}
+                  >
+                    <Center>{player['display']}</Center>
+                </Box>
+                </GridItem>
+              ))
+            )}
+          </Grid>
+          <Divider/>
+        </Container>
         <Grid templateColumns="repeat(auto-fit, minmax(300px, 1fr))" gap={6} p={10}>
-          {this.state.matches ? (
+          {this.state.matches && (
             <>
-              {this.state.matches.slice(0, this.state.pageOffset + PAGE_AMOUNT).map((match => (<MatchStats match={match} key={match[0].matchId} linkable/>)))}
+              {this.state.matches.slice(0, this.state.pageOffset + PAGE_AMOUNT).map((match => (<MatchStats match={match} key={match[0].matchId} linkable />)))}
             </>
-          ) : (<Progress size="xs" isIndeterminate />)
-          }
+          )}
         </Grid>
       </div>
     );
