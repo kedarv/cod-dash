@@ -148,7 +148,7 @@ class Home extends Component {
             alignItems="flex-start"
             justifyContent="flex-start"
           >
-            <Heading>⚡️Dub Squad Dashboard</Heading>
+            <Heading>Test ⚡️Dub Squad Dashboard</Heading>
           </Flex>
           <Text color="gray.500">let's get dem dubs</Text>
           <Text color="gray.500">{this.state.updatedAgo && <DataUpdater time={this.state.updatedAgo} refreshFn={this.handleDataRefresh} />}</Text>
