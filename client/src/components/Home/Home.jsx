@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
 import {
   Grid,
   CSSReset,
@@ -18,10 +18,11 @@ import {
   Container,
   Center,
   Divider,
-} from '@chakra-ui/react';
-import MatchStats from '../MatchStats';
-import DataUpdater from '../DataUpdater';
-import GameDetail from '../GameDetail';
+} from "@chakra-ui/react";
+import MatchStats from "../MatchStats";
+import DataUpdater from "../DataUpdater";
+import GameDetail from "../GameDetail";
+import staticApiResponse from "../../api.json";
 
 const PAGE_AMOUNT = 50;
 class Home extends Component {
@@ -34,12 +35,12 @@ class Home extends Component {
       viewingGameDetail: props.match?.params?.id,
       modalOpen: props.match?.params?.id !== undefined,
       players: null,
-    }
+    };
     this.handleScroll = this.handleScroll.bind(this);
   }
 
   handleDataRefresh = async () => {
-    const toast = createStandaloneToast()
+    const toast = createStandaloneToast();
     toast({
       position: "bottom-left",
       title: "Refreshing Data",
@@ -47,10 +48,10 @@ class Home extends Component {
       status: "info",
       duration: 6000,
       isClosable: true,
-    })
-    const response = await fetch(process.env.REACT_APP_HOST + '/refresh');
+    });
+    const response = await fetch(import.meta.env.VITE_API_HOST + "/refresh");
     const data = await response.json();
-    if (data['message'] === "SUCCESS") {
+    if (data["message"] === "SUCCESS") {
       await this.populateMatches();
       toast({
         position: "bottom-left",
@@ -59,29 +60,28 @@ class Home extends Component {
         status: "success",
         duration: 6000,
         isClosable: true,
-      })
+      });
     } else {
       toast({
         position: "bottom-left",
         title: "Refresh Refused",
-        description: "It looks like we've already refreshed data recently. Try again later.",
+        description:
+          "It looks like we've already refreshed data recently. Try again later.",
         status: "warning",
         duration: 6000,
         isClosable: true,
-      })
+      });
     }
-  }
+  };
 
-  populateMatches = async () => {
-    const response = await fetch(process.env.REACT_APP_HOST + '/api');
-    const data = await response.json();
+  handleMatchData = (data) => {
     let matches = [];
 
     // Transform data into array of arrays of match objects
-    data['results'].forEach((match => {
+    data["results"].forEach((match) => {
       let appended = false;
       for (let i = 0; i < matches.length; i++) {
-        if (matches[i][0].matchId === match['matchId']) {
+        if (matches[i][0].matchId === match["matchId"]) {
           matches[i].push(match);
           appended = true;
           break;
@@ -90,30 +90,52 @@ class Home extends Component {
       if (!appended) {
         matches.push([match]);
       }
-    }));
-    this.setState({ matches, updatedAgo: data['updatedAgo'], players: data['players'] });
+    });
+    this.setState({
+      matches,
+      updatedAgo: data["updatedAgo"],
+      players: data["players"],
+    });
+  };
+  populateMatches = async () => {
+    const response = await fetch(import.meta.env.VITE_API_HOST + "/api");
+    const data = await response.json();
+    this.handleMatchData(data);
 
-    if (data['triggerRefresh']) {
+    if (data["triggerRefresh"]) {
       this.handleDataRefresh();
     }
-  }
+  };
 
   async componentDidMount() {
-    await this.populateMatches();
+    if (import.meta.env.VITE_API_ENABLED === true) {
+      await this.populateMatches();
+    } else {
+      this.handleMatchData(staticApiResponse);
+    }
     window.addEventListener("scroll", this.handleScroll);
   }
 
   // Listen for scroll to bottom to infinite-scroll
   handleScroll() {
-    const windowHeight = "innerHeight" in window ? window.innerHeight : document.documentElement.offsetHeight;
+    const windowHeight =
+      "innerHeight" in window
+        ? window.innerHeight
+        : document.documentElement.offsetHeight;
     const body = document.body;
     const html = document.documentElement;
-    const docHeight = Math.max(body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight);
+    const docHeight = Math.max(
+      body.scrollHeight,
+      body.offsetHeight,
+      html.clientHeight,
+      html.scrollHeight,
+      html.offsetHeight
+    );
     const windowBottom = windowHeight + window.pageYOffset;
     if (windowBottom >= docHeight) {
       this.setState({
-        pageOffset: this.state.pageOffset + PAGE_AMOUNT
-      })
+        pageOffset: this.state.pageOffset + PAGE_AMOUNT,
+      });
     }
   }
 
@@ -123,7 +145,13 @@ class Home extends Component {
         <CSSReset />
         {this.state.viewingGameDetail && (
           <>
-            <Modal closeOnOverlayClick={true} isOpen={this.state.modalOpen} onClose={() => { this.setState({ "modalOpen": false }) }}>
+            <Modal
+              closeOnOverlayClick={true}
+              isOpen={this.state.modalOpen}
+              onClose={() => {
+                this.setState({ modalOpen: false });
+              }}
+            >
               <ModalOverlay />
               <ModalContent>
                 <ModalHeader>Game Detail</ModalHeader>
@@ -133,7 +161,8 @@ class Home extends Component {
                 </ModalBody>
               </ModalContent>
             </Modal>
-          </>)}
+          </>
+        )}
         <Flex
           display="flex"
           flexDirection="column"
@@ -151,7 +180,14 @@ class Home extends Component {
             <Heading>⚡️Dub Squad Dashboard</Heading>
           </Flex>
           <Text color="gray.500">let's get dem dubs</Text>
-          <Text color="gray.500">{this.state.updatedAgo && <DataUpdater time={this.state.updatedAgo} refreshFn={this.handleDataRefresh} />}</Text>
+          <Text color="gray.500">
+            {this.state.updatedAgo && (
+              <DataUpdater
+                time={this.state.updatedAgo}
+                refreshFn={this.handleDataRefresh}
+              />
+            )}
+          </Text>
         </Flex>
         {!this.state.players && (
           <Container mt={8}>
@@ -159,10 +195,14 @@ class Home extends Component {
           </Container>
         )}
         <Container maxW="7xl">
-          <Grid templateColumns="repeat(auto-fit, minmax(200px, 1fr))" gap={6} p={10}>
-            {this.state.players && (
-              this.state.players.map((player =>
-                <GridItem>
+          <Grid
+            templateColumns="repeat(auto-fit, minmax(200px, 1fr))"
+            gap={6}
+            p={10}
+          >
+            {this.state.players &&
+              this.state.players.map((player) => (
+                <GridItem key={player["display"]}>
                   <Box
                     backgroundColor="white"
                     borderRadius="lg"
@@ -173,18 +213,25 @@ class Home extends Component {
                     pt={5}
                     pb={5}
                   >
-                    <Center>{player['display']}</Center>
-                </Box>
+                    <Center>{player["display"]}</Center>
+                  </Box>
                 </GridItem>
-              ))
-            )}
+              ))}
           </Grid>
-          <Divider/>
+          <Divider />
         </Container>
-        <Grid templateColumns="repeat(auto-fit, minmax(300px, 1fr))" gap={6} p={10}>
+        <Grid
+          templateColumns="repeat(auto-fit, minmax(300px, 1fr))"
+          gap={6}
+          p={10}
+        >
           {this.state.matches && (
             <>
-              {this.state.matches.slice(0, this.state.pageOffset + PAGE_AMOUNT).map((match => (<MatchStats match={match} key={match[0].matchId} linkable />)))}
+              {this.state.matches
+                .slice(0, this.state.pageOffset + PAGE_AMOUNT)
+                .map((match) => (
+                  <MatchStats match={match} key={match[0].matchId} linkable />
+                ))}
             </>
           )}
         </Grid>
